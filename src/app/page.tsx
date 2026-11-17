@@ -1,20 +1,17 @@
-import React from "react";
+import React, { Suspense } from "react";
 import { getBookings, getStorageInfo } from "@/lib/server/bookings";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { StatsCards } from "@/components/dashboard/StatsCards";
 import { UpcomingList } from "@/components/dashboard/UpcomingList";
 import { Booking } from "@/types/booking";
+import Loading from "@/app/loading";
 
-import { connection } from "next/server";
-
-export default async function HomePage() {
-  await connection();
+async function DashboardContent() {
   const [bookings, storageInfo] = await Promise.all([
     getBookings(),
     getStorageInfo(),
   ]);
 
-  // Compute Today's ISO date string (YYYY-MM-DD)
   const todayStr = new Date().toISOString().split("T")[0];
 
   // 1. KPI Calculations
@@ -23,8 +20,7 @@ export default async function HomePage() {
   const pendingCount = bookings.filter((b) => b.status === "pending").length;
   const confirmedCount = bookings.filter((b) => b.status === "confirmed").length;
 
-  // 2. Next 5 Upcoming Bookings:
-  // Filter for upcoming/today sessions that are not cancelled, sorted soonest first
+  // 2. Next 5 Upcoming Bookings
   const upcomingBookings = [...bookings]
     .filter((b) => b.date >= todayStr && b.status !== "cancelled")
     .sort((a, b) => {
@@ -34,7 +30,6 @@ export default async function HomePage() {
     })
     .slice(0, 5);
 
-  // If there are fewer than 5 upcoming sessions, fallback to all active non-cancelled bookings sorted soonest first
   const displayUpcoming: Booking[] =
     upcomingBookings.length > 0
       ? upcomingBookings
@@ -44,7 +39,7 @@ export default async function HomePage() {
           .slice(0, 5);
 
   return (
-    <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full flex-1">
+    <>
       {/* Top Welcome & CTA Banner */}
       <DashboardHeader storageType={storageInfo.type} />
 
@@ -62,6 +57,16 @@ export default async function HomePage() {
       <section aria-label="Upcoming Bookings">
         <UpcomingList bookings={displayUpcoming} />
       </section>
+    </>
+  );
+}
+
+export default function HomePage() {
+  return (
+    <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full flex-1">
+      <Suspense fallback={<Loading />}>
+        <DashboardContent />
+      </Suspense>
     </main>
   );
 }
