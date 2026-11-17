@@ -1,0 +1,112 @@
+[
+  {
+    "id": "550e8400-e29b-41d4-a716-446655440001",
+    "customerName": "Sarah Jenkins",
+    "email": "sarah.jenkins@example.com",
+    "service": "Personal Training",
+    "date": "2026-11-17",
+    "time": "08:00",
+    "status": "confirmed",
+    "notes": "Focus on shoulder mobility and progressive barbell bench press.",
+    "createdAt": "2026-11-15T09:30:00.000Z"
+  },
+  {
+    "id": "550e8400-e29b-41d4-a716-446655440002",
+    "customerName": "Michael Chang",
+    "email": "m.chang@example.com",
+    "service": "HIIT",
+    "date": "2026-11-17",
+    "time": "09:30",
+    "status": "confirmed",
+    "notes": "Bringing guest pass for first-time trial.",
+    "createdAt": "2026-11-15T11:15:00.000Z"
+  },
+  {
+    "id": "550e8400-e29b-41d4-a716-446655440003",
+    "customerName": "Emma Watson",
+    "email": "emma.watson@example.com",
+    "service": "Pilates",
+    "date": "2026-11-17",
+    "time": "11:00",
+    "status": "pending",
+    "notes": "Requested reformer machine near window.",
+    "createdAt": "2026-11-16T14:20:00.000Z"
+  },
+  {
+    "id": "550e8400-e29b-41d4-a716-446655440004",
+    "customerName": "David Miller",
+    "email": "david.miller@example.com",
+    "service": "Yoga",
+    "date": "2026-11-17",
+    "time": "17:30",
+    "status": "confirmed",
+    "notes": "Gentle restorative flow after long work week.",
+    "createdAt": "2026-11-15T16:45:00.000Z"
+  },
+  {
+    "id": "550e8400-e29b-41d4-a716-446655440005",
+    "customerName": "Jessica Taylor",
+    "email": "jess.taylor@example.com",
+    "service": "Personal Training",
+    "date": "2026-11-18",
+    "time": "10:00",
+    "status": "pending",
+    "notes": "New client fitness assessment and baseline measurements.",
+    "createdAt": "2026-11-16T18:00:00.000Z"
+  },
+  {
+    "id": "550e8400-e29b-41d4-a716-446655440006",
+    "customerName": "Liam Davies",
+    "email": "liam.davies@example.com",
+    "service": "HIIT",
+    "date": "2026-11-18",
+    "time": "18:00",
+    "status": "confirmed",
+    "notes": "Prefers kettlebell circuit exercises.",
+    "createdAt": "2026-11-16T19:10:00.000Z"
+  },
+  {
+    "id": "550e8400-e29b-41d4-a716-446655440007",
+    "customerName": "Sophia Rodriguez",
+    "email": "sophia.r@example.com",
+    "service": "Yoga",
+    "date": "2026-11-19",
+    "time": "07:30",
+    "status": "confirmed",
+    "notes": "Early morning vinyasa flow session.",
+    "createdAt": "2026-11-16T20:05:00.000Z"
+  },
+  {
+    "id": "550e8400-e29b-41d4-a716-446655440008",
+    "customerName": "Alexander Wright",
+    "email": "a.wright@example.com",
+    "service": "Pilates",
+    "date": "2026-11-19",
+    "time": "14:00",
+    "status": "pending",
+    "notes": "Core stability focus, lower back rehab.",
+    "createdAt": "2026-11-17T08:15:00.000Z"
+  },
+  {
+    "id": "550e8400-e29b-41d4-a716-446655440009",
+    "customerName": "Olivia Brown",
+    "email": "olivia.b@example.com",
+    "service": "Personal Training",
+    "date": "2026-11-20",
+    "time": "15:30",
+    "status": "cancelled",
+    "notes": "Client cancelled due to business travel.",
+    "createdAt": "2026-11-14T10:00:00.000Z"
+  },
+  {
+    "id": "550e8400-e29b-41d4-a716-446655440010",
+    "customerName": "Lucas Green",
+    "email": "lucas.green@example.com",
+    "service": "HIIT",
+    "date": "2026-11-21",
+    "time": "10:30",
+    "status": "confirmed",
+    "notes": "Weekend endurance challenge.",
+    "createdAt": "2026-11-16T12:00:00.000Z"
+  }
+]

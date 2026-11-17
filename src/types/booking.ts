@@ -1,51 +1,32 @@
-export type SessionType = "personal_training" | "group_fitness";
+export type Service = "Personal Training" | "Yoga" | "HIIT" | "Pilates";
 
-export type BookingStatus = "confirmed" | "completed" | "cancelled";
+export const SERVICES: Service[] = [
+  "Personal Training",
+  "Yoga",
+  "HIIT",
+  "Pilates",
+];
 
-export interface Trainer {
-  id: string;
-  name: string;
-  specialty: string;
-  avatarColor: string;
-}
+export type BookingStatus = "pending" | "confirmed" | "cancelled";
+
+export const BOOKING_STATUSES: BookingStatus[] = [
+  "pending",
+  "confirmed",
+  "cancelled",
+];
 
 export interface Booking {
-  id: string;
-  clientName: string;
-  clientEmail: string;
-  clientPhone: string;
-  sessionType: SessionType;
-  title: string;
-  trainerId: string;
-  trainerName: string;
-  date: string; // ISO date format YYYY-MM-DD
-  startTime: string; // HH:mm format (24-hour)
-  durationMinutes: number; // e.g., 45, 60
-  capacity: number; // 1 for PT, up to 15 for group
-  attendeesCount: number; // for group sessions
-  status: BookingStatus;
-  notes?: string;
-  createdAt: string;
-  updatedAt: string;
+  id: string; // Generated automatically (e.g. crypto.randomUUID())
+  customerName: string; // Required, 2 to 50 characters
+  email: string; // Required, must be a valid email
+  service: Service; // "Personal Training" | "Yoga" | "HIIT" | "Pilates"
+  date: string; // ISO date string (YYYY-MM-DD), cannot be in the past when creating
+  time: string; // Required, between 07:00 and 21:00 (HH:mm)
+  status: BookingStatus; // "pending" | "confirmed" | "cancelled" (default: pending)
+  notes?: string; // Optional, max 200 characters
+  createdAt: string; // ISO string, set automatically
 }
 
-export interface BookingFormData {
-  clientName: string;
-  clientEmail: string;
-  clientPhone: string;
-  sessionType: SessionType;
-  title: string;
-  trainerId: string;
-  date: string;
-  startTime: string;
-  durationMinutes: number;
-  capacity: number;
-  notes?: string;
-}
+export type CreateBookingInput = Omit<Booking, "id" | "createdAt">;
 
-export interface BookingFilters {
-  search: string;
-  sessionType: "all" | SessionType;
-  status: "all" | BookingStatus;
-  dateFilter: "all" | "today" | "upcoming" | "past";
-}
+export type UpdateBookingInput = Partial<CreateBookingInput>;
