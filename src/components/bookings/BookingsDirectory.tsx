@@ -33,6 +33,19 @@ export function BookingsDirectory({ initialBookings }: BookingsDirectoryProps) {
   const [viewMode, setViewMode] = useState<"table" | "calendar">(initialView);
   const [showNotification, setShowNotification] = useState(Boolean(successType));
 
+  // Sync state if URL searchParams change externally (e.g. Browser Back/Forward navigation)
+  React.useEffect(() => {
+    const q = searchParams.get("q") || "";
+    const s = searchParams.get("service") || "all";
+    const st = searchParams.get("status") || "all";
+    const v = searchParams.get("view") === "calendar" ? "calendar" : "table";
+
+    setSearch(q);
+    setService(s);
+    setStatus(st);
+    setViewMode(v);
+  }, [searchParams]);
+
   // Sync state to URL search parameters smoothly
   const updateUrlParams = (
     newSearch: string,

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useTransition } from "react";
+import React, { useState, useTransition, useOptimistic } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Booking, BookingStatus } from "@/types/booking";
@@ -23,6 +23,7 @@ import {
   AlertTriangle,
   Check,
   X,
+  Loader2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -39,10 +40,20 @@ export function BookingDetailsView({ booking }: BookingDetailsViewProps) {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
 
+  // Bonus Feature: Optimistic UI updates with React 19's useOptimistic
+  const [optimisticStatus, setOptimisticStatus] = useOptimistic<BookingStatus, BookingStatus>(
+    booking.status,
+    (_currentStatus, newStatus) => newStatus
+  );
+
   const isUpdated = searchParams.get("success") === "updated";
 
   const handleStatusChange = (newStatus: BookingStatus) => {
     startStatusTransition(async () => {
+      // 1. Instantly update the UI optimistically (0ms perceived latency)
+      setOptimisticStatus(newStatus);
+
+      // 2. Execute server action in the background
       const res = await quickUpdateStatusAction(booking.id, newStatus);
       if (res.success) {
         setStatusMessage(
@@ -50,6 +61,10 @@ export function BookingDetailsView({ booking }: BookingDetailsViewProps) {
             ? "Session confirmed successfully!"
             : "Session marked as cancelled."
         );
+        setTimeout(() => setStatusMessage(null), 4000);
+      } else {
+        // If server failed, toast error (React will automatically roll back optimistic status)
+        setStatusMessage(res.error || "Failed to update status. Please try again.");
         setTimeout(() => setStatusMessage(null), 4000);
       }
     });
@@ -111,7 +126,13 @@ export function BookingDetailsView({ booking }: BookingDetailsViewProps) {
         <div className="space-y-2">
           <div className="flex flex-wrap items-center gap-2.5">
             <ServiceBadge service={booking.service} className="text-xs py-1 px-3" />
-            <StatusBadge status={booking.status} className="text-xs py-1 px-3" />
+            <StatusBadge status={optimisticStatus} className="text-xs py-1 px-3" />
+            {isUpdatingStatus && (
+              <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 animate-pulse">
+                <Loader2 className="h-3 w-3 animate-spin" />
+                <span>Saving...</span>
+              </span>
+            )}
             <span className="text-[11px] text-slate-400 dark:text-slate-500 font-mono">
               ID: {booking.id.slice(0, 8)}...
             </span>
@@ -188,7 +209,12 @@ export function BookingDetailsView({ booking }: BookingDetailsViewProps) {
 
                 <div className="bg-slate-50 dark:bg-slate-800/60 p-3.5 rounded-xl border border-slate-100 dark:border-slate-800">
                   <span className="text-xs text-slate-500 dark:text-slate-400 block mb-1">Current Status</span>
-                  <StatusBadge status={booking.status} />
+                  <div className="flex items-center gap-2">
+                    <StatusBadge status={optimisticStatus} />
+                    {isUpdatingStatus && (
+                      <span className="text-[10px] text-slate-400 animate-pulse font-mono">(syncing)</span>
+                    )}
+                  </div>
                 </div>
 
                 <div className="bg-slate-50 dark:bg-slate-800/60 p-3.5 rounded-xl border border-slate-100 dark:border-slate-800">
@@ -262,34 +288,34 @@ export function BookingDetailsView({ booking }: BookingDetailsViewProps) {
                 {/* Confirm Button */}
                 <button
                   onClick={() => handleStatusChange("confirmed")}
-                  disabled={booking.status === "confirmed" || isUpdatingStatus}
+                  disabled={optimisticStatus === "confirmed" || isUpdatingStatus}
                   className={cn(
                     "w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-xs sm:text-sm font-semibold transition-all cursor-pointer",
-                    booking.status === "confirmed"
+                    optimisticStatus === "confirmed"
                       ? "bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 cursor-not-allowed border border-slate-200 dark:border-slate-700"
                       : "bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs shadow-emerald-600/20"
                   )}
                 >
                   <CheckCircle2 className="h-4 w-4" />
                   <span>
-                    {booking.status === "confirmed" ? "Session Confirmed" : "Confirm Session"}
+                    {optimisticStatus === "confirmed" ? "Session Confirmed" : "Confirm Session"}
                   </span>
                 </button>
 
                 {/* Cancel Button */}
                 <button
                   onClick={() => handleStatusChange("cancelled")}
-                  disabled={booking.status === "cancelled" || isUpdatingStatus}
+                  disabled={optimisticStatus === "cancelled" || isUpdatingStatus}
                   className={cn(
                     "w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-xs sm:text-sm font-semibold transition-all cursor-pointer",
-                    booking.status === "cancelled"
+                    optimisticStatus === "cancelled"
                       ? "bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 cursor-not-allowed border border-slate-200 dark:border-slate-700"
                       : "bg-amber-50 dark:bg-amber-950/40 hover:bg-amber-100 dark:hover:bg-amber-900/50 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-900/50"
                   )}
                 >
                   <XCircle className="h-4 w-4" />
                   <span>
-                    {booking.status === "cancelled" ? "Session Cancelled" : "Cancel Session"}
+                    {optimisticStatus === "cancelled" ? "Session Cancelled" : "Cancel Session"}
                   </span>
                 </button>
 
@@ -344,7 +370,7 @@ export function BookingDetailsView({ booking }: BookingDetailsViewProps) {
             </button>
           </div>
 
-          <BookingForm mode="edit" initialData={booking} />
+          <BookingForm mode="edit" initialData={{ ...booking, status: optimisticStatus }} />
         </div>
       )}
 
