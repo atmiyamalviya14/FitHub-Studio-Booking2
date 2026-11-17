@@ -1,12 +1,12 @@
 "use client";
 
-import React, { useState, useMemo, useTransition } from "react";
+import React, { useState, useMemo, useTransition, useEffect } from "react";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { Booking } from "@/types/booking";
 import { BookingsFilters } from "./BookingsFilters";
 import { BookingsTable } from "./BookingsTable";
 import Link from "next/link";
-import { PlusCircle, CalendarDays } from "lucide-react";
+import { PlusCircle, CheckCircle2, X } from "lucide-react";
 
 interface BookingsDirectoryProps {
   initialBookings: Booking[];
@@ -22,10 +22,12 @@ export function BookingsDirectory({ initialBookings }: BookingsDirectoryProps) {
   const initialSearch = searchParams.get("q") || "";
   const initialService = searchParams.get("service") || "all";
   const initialStatus = searchParams.get("status") || "all";
+  const successType = searchParams.get("success");
 
   const [search, setSearch] = useState(initialSearch);
   const [service, setService] = useState(initialService);
   const [status, setStatus] = useState(initialStatus);
+  const [showNotification, setShowNotification] = useState(Boolean(successType));
 
   // Sync state to URL search parameters smoothly
   const updateUrlParams = (newSearch: string, newService: string, newStatus: string) => {
@@ -62,6 +64,14 @@ export function BookingsDirectory({ initialBookings }: BookingsDirectoryProps) {
     setService("all");
     setStatus("all");
     updateUrlParams("", "all", "all");
+  };
+
+  const dismissNotification = () => {
+    setShowNotification(false);
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete("success");
+    const q = params.toString();
+    router.replace(q ? `${pathname}?${q}` : pathname, { scroll: false });
   };
 
   // Filter & Sort Bookings
@@ -103,6 +113,38 @@ export function BookingsDirectory({ initialBookings }: BookingsDirectoryProps) {
 
   return (
     <div className="space-y-6">
+      {/* Success Notification Banner */}
+      {showNotification && successType && (
+        <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900 flex items-center justify-between shadow-xs animate-slide-down">
+          <div className="flex items-center gap-3">
+            <div className="p-1 rounded-full bg-emerald-200 text-emerald-800">
+              <CheckCircle2 className="h-4 w-4" />
+            </div>
+            <div>
+              <p className="text-sm font-bold">
+                {successType === "created"
+                  ? "Booking Scheduled Successfully!"
+                  : successType === "deleted"
+                  ? "Booking Removed"
+                  : "Action Completed"}
+              </p>
+              <p className="text-xs text-emerald-700">
+                {successType === "created"
+                  ? "The new session has been scheduled and recorded in the studio directory."
+                  : "The booking record was permanently removed."}
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={dismissNotification}
+            className="p-1 rounded-lg text-emerald-700 hover:bg-emerald-100 transition-colors"
+            title="Dismiss notice"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+      )}
+
       {/* Top Header Row */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>

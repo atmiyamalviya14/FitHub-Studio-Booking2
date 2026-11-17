@@ -37,9 +37,12 @@ export const bookingFormSchema = z.object({
     .min(1, { message: "Email is required." })
     .email({ message: "Please provide a valid email address." }),
 
-  service: z.enum(SERVICES as [string, ...string[]], {
-    message: "Please select a valid service.",
-  }),
+  service: z.enum(
+    ["Personal Training", "Yoga", "HIIT", "Pilates"] as const,
+    {
+      message: "Please select a valid service.",
+    }
+  ),
 
   date: z
     .string()
@@ -55,7 +58,7 @@ export const bookingFormSchema = z.object({
       message: "Time must be within operating hours (between 07:00 and 21:00).",
     }),
 
-  status: z.enum(BOOKING_STATUSES as [string, ...string[]]).default("pending"),
+  status: z.enum(["pending", "confirmed", "cancelled"] as const).default("pending"),
 
   notes: z
     .string()
