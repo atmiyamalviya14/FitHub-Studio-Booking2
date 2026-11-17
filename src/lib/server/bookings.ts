@@ -4,12 +4,14 @@ import fs from "fs/promises";
 import path from "path";
 import crypto from "crypto";
 import { Booking, CreateBookingInput, Service, BookingStatus } from "@/types/booking";
+import { connectToDatabase, isMongoConfigured } from "./mongodb";
+import { BookingModel } from "./models/Booking.model";
 
 const DATA_DIR = path.join(process.cwd(), "data");
 const DATA_FILE = path.join(DATA_DIR, "bookings.json");
 
-// Default seed data in case file is ever missing
-const SEED_BOOKINGS: Booking[] = [
+// Default seed data
+export const SEED_BOOKINGS: Booking[] = [
   {
     id: "550e8400-e29b-41d4-a716-446655440001",
     customerName: "Sarah Jenkins",
@@ -123,9 +125,22 @@ const SEED_BOOKINGS: Booking[] = [
 ];
 
 /**
- * Ensures data directory and bookings.json exist.
+ * Reports active storage backend (MongoDB vs JSON File Store).
  */
-async function ensureDataFile(): Promise<void> {
+export async function getStorageInfo(): Promise<{ type: "MongoDB" | "JSON File Store"; isConnected: boolean }> {
+  if (isMongoConfigured()) {
+    const conn = await connectToDatabase();
+    if (conn) {
+      return { type: "MongoDB", isConnected: true };
+    }
+  }
+  return { type: "JSON File Store", isConnected: true };
+}
+
+/**
+ * Ensures data directory and bookings.json exist for JSON store.
+ */
+async function ensureJsonFile(): Promise<void> {
   try {
     await fs.mkdir(DATA_DIR, { recursive: true });
     try {
@@ -140,14 +155,13 @@ async function ensureDataFile(): Promise<void> {
 }
 
 /**
- * Reads all bookings from the server-side JSON store.
+ * Reads bookings from JSON file.
  */
-export async function getBookings(): Promise<Booking[]> {
-  await ensureDataFile();
+async function readJsonBookings(): Promise<Booking[]> {
+  await ensureJsonFile();
   try {
     const raw = await fs.readFile(DATA_FILE, "utf-8");
-    const bookings = JSON.parse(raw) as Booking[];
-    return bookings;
+    return JSON.parse(raw) as Booking[];
   } catch (error) {
     console.error("Failed to read bookings from JSON:", error);
     return SEED_BOOKINGS;
@@ -155,18 +169,89 @@ export async function getBookings(): Promise<Booking[]> {
 }
 
 /**
- * Saves all bookings to the server-side JSON store.
+ * Writes bookings to JSON file.
  */
-async function saveBookings(bookings: Booking[]): Promise<void> {
-  await ensureDataFile();
+async function writeJsonBookings(bookings: Booking[]): Promise<void> {
+  await ensureJsonFile();
   await fs.writeFile(DATA_FILE, JSON.stringify(bookings, null, 2), "utf-8");
+}
+
+/**
+ * Seed MongoDB if collection is currently empty.
+ */
+async function seedMongoIfEmpty(): Promise<void> {
+  const count = await BookingModel.countDocuments();
+  if (count === 0) {
+    const docs = SEED_BOOKINGS.map((b) => ({
+      bookingId: b.id,
+      customerName: b.customerName,
+      email: b.email,
+      service: b.service,
+      date: b.date,
+      time: b.time,
+      status: b.status,
+      notes: b.notes || "",
+      createdAt: b.createdAt,
+    }));
+    await BookingModel.insertMany(docs);
+  }
+}
+
+/**
+ * Reads all bookings from active store (MongoDB or JSON file).
+ */
+export async function getBookings(): Promise<Booking[]> {
+  const mongo = await connectToDatabase();
+  if (mongo) {
+    try {
+      await seedMongoIfEmpty();
+      const docs = await BookingModel.find().lean();
+      return docs.map((doc) => ({
+        id: doc.bookingId,
+        customerName: doc.customerName,
+        email: doc.email,
+        service: doc.service as Service,
+        date: doc.date,
+        time: doc.time,
+        status: doc.status as BookingStatus,
+        notes: doc.notes || undefined,
+        createdAt: doc.createdAt,
+      }));
+    } catch (e) {
+      console.error("MongoDB query error, falling back to JSON:", e);
+      return readJsonBookings();
+    }
+  }
+
+  return readJsonBookings();
 }
 
 /**
  * Gets a single booking by ID.
  */
 export async function getBookingById(id: string): Promise<Booking | null> {
-  const bookings = await getBookings();
+  const mongo = await connectToDatabase();
+  if (mongo) {
+    try {
+      const doc = await BookingModel.findOne({ bookingId: id }).lean();
+      if (!doc) return null;
+      return {
+        id: doc.bookingId,
+        customerName: doc.customerName,
+        email: doc.email,
+        service: doc.service as Service,
+        date: doc.date,
+        time: doc.time,
+        status: doc.status as BookingStatus,
+        notes: doc.notes || undefined,
+        createdAt: doc.createdAt,
+      };
+    } catch (e) {
+      console.error("MongoDB find error, falling back to JSON:", e);
+    }
+  }
+
+  const bookings = await readJsonBookings();
   const found = bookings.find((b) => b.id === id);
   return found ?? null;
 }
@@ -224,9 +309,29 @@ export async function createBooking(
     createdAt: new Date().toISOString(),
   };
 
-  const bookings = await getBookings();
+  const mongo = await connectToDatabase();
+  if (mongo) {
+    try {
+      await BookingModel.create({
+        bookingId: newBooking.id,
+        customerName: newBooking.customerName,
+        email: newBooking.email,
+        service: newBooking.service,
+        date: newBooking.date,
+        time: newBooking.time,
+        status: newBooking.status,
+        notes: newBooking.notes || "",
+        createdAt: newBooking.createdAt,
+      });
+      return { success: true, booking: newBooking };
+    } catch (e) {
+      console.error("MongoDB create error, fallback to JSON:", e);
+    }
+  }
+
+  const bookings = await readJsonBookings();
   const updated = [newBooking, ...bookings];
-  await saveBookings(updated);
+  await writeJsonBookings(updated);
 
   return { success: true, booking: newBooking };
 }
@@ -238,14 +343,11 @@ export async function updateBooking(
   id: string,
   updates: Partial<CreateBookingInput>
 ): Promise<{ success: true; booking: Booking } | { success: false; error: string }> {
-  const bookings = await getBookings();
-  const index = bookings.findIndex((b) => b.id === id);
-
-  if (index === -1) {
+  const existing = await getBookingById(id);
+  if (!existing) {
     return { success: false, error: "Booking not found." };
   }
 
-  const existing = bookings[index];
   const targetService = updates.service ?? existing.service;
   const targetDate = updates.date ?? existing.date;
   const targetTime = updates.time ?? existing.time;
@@ -270,8 +372,33 @@ export async function updateBooking(
     notes: updates.notes !== undefined ? updates.notes.trim() || undefined : existing.notes,
   };
 
-  bookings[index] = updatedBooking;
-  await saveBookings(bookings);
+  const mongo = await connectToDatabase();
+  if (mongo) {
+    try {
+      await BookingModel.updateOne(
+        { bookingId: id },
+        {
+          customerName: updatedBooking.customerName,
+          email: updatedBooking.email,
+          service: updatedBooking.service,
+          date: updatedBooking.date,
+          time: updatedBooking.time,
+          status: updatedBooking.status,
+          notes: updatedBooking.notes || "",
+        }
+      );
+      return { success: true, booking: updatedBooking };
+    } catch (e) {
+      console.error("MongoDB update error, fallback to JSON:", e);
+    }
+  }
+
+  const bookings = await readJsonBookings();
+  const index = bookings.findIndex((b) => b.id === id);
+  if (index !== -1) {
+    bookings[index] = updatedBooking;
+    await writeJsonBookings(bookings);
+  }
 
   return { success: true, booking: updatedBooking };
 }
@@ -283,7 +410,17 @@ export async function updateBookingStatus(
   id: string,
   status: BookingStatus
 ): Promise<{ success: boolean; error?: string }> {
-  const bookings = await getBookings();
+  const mongo = await connectToDatabase();
+  if (mongo) {
+    try {
+      const res = await BookingModel.updateOne({ bookingId: id }, { status });
+      if (res.matchedCount > 0) return { success: true };
+    } catch (e) {
+      console.error("MongoDB status update error, fallback to JSON:", e);
+    }
+  }
+
+  const bookings = await readJsonBookings();
   const index = bookings.findIndex((b) => b.id === id);
 
   if (index === -1) {
@@ -291,7 +428,7 @@ export async function updateBookingStatus(
   }
 
   bookings[index].status = status;
-  await saveBookings(bookings);
+  await writeJsonBookings(bookings);
   return { success: true };
 }
 
@@ -301,7 +438,17 @@ export async function updateBookingStatus(
 export async function deleteBooking(
   id: string
 ): Promise<{ success: boolean; error?: string }> {
-  const bookings = await getBookings();
+  const mongo = await connectToDatabase();
+  if (mongo) {
+    try {
+      const res = await BookingModel.deleteOne({ bookingId: id });
+      if (res.deletedCount > 0) return { success: true };
+    } catch (e) {
+      console.error("MongoDB delete error, fallback to JSON:", e);
+    }
+  }
+
+  const bookings = await readJsonBookings();
   const initialLength = bookings.length;
   const filtered = bookings.filter((b) => b.id !== id);
 
@@ -309,15 +456,25 @@ export async function deleteBooking(
     return { success: false, error: "Booking not found." };
   }
 
-  await saveBookings(filtered);
+  await writeJsonBookings(filtered);
   return { success: true };
 }
 
 /**
- * Resets bookings back to the original 10 seed entries.
+ * Resets bookings back to original seed entries.
  */
 export async function resetBookingsToSeed(): Promise<Booking[]> {
-  await ensureDataFile();
-  await saveBookings(SEED_BOOKINGS);
+  const mongo = await connectToDatabase();
+  if (mongo) {
+    try {
+      await BookingModel.deleteMany({});
+      await seedMongoIfEmpty();
+    } catch (e) {
+      console.error("MongoDB reset error:", e);
+    }
+  }
+
+  await ensureJsonFile();
+  await writeJsonBookings(SEED_BOOKINGS);
   return SEED_BOOKINGS;
 }
