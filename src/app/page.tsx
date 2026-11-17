@@ -1,4 +1,5 @@
 import React, { Suspense } from "react";
+import { connection } from "next/server";
 import { getBookings, getStorageInfo } from "@/lib/server/bookings";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { StatsCards } from "@/components/dashboard/StatsCards";
@@ -7,6 +8,7 @@ import { Booking } from "@/types/booking";
 import Loading from "@/app/loading";
 
 async function DashboardContent() {
+  await connection();
   const [bookings, storageInfo] = await Promise.all([
     getBookings(),
     getStorageInfo(),

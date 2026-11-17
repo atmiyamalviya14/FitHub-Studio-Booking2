@@ -18,14 +18,28 @@ if (!cached) {
   cached = global.mongooseConnection = { conn: null, promise: null };
 }
 
+export function getSanitizedMongoUri(): string | null {
+  const raw = process.env.MONGODB_URI;
+  if (!raw) return null;
+  let uri = raw.trim();
+  // Strip surrounding quotes if user copied them from documentation or env files
+  if (
+    (uri.startsWith('"') && uri.endsWith('"')) ||
+    (uri.startsWith("'") && uri.endsWith("'"))
+  ) {
+    uri = uri.slice(1, -1).trim();
+  }
+  return uri.length > 0 ? uri : null;
+}
+
 export function isMongoConfigured(): boolean {
-  const uri = process.env.MONGODB_URI;
-  return Boolean(uri && uri.trim().length > 0);
+  const uri = getSanitizedMongoUri();
+  return Boolean(uri && uri.length > 0);
 }
 
 export async function connectToDatabase(): Promise<typeof mongoose | null> {
-  const uri = process.env.MONGODB_URI;
-  if (!uri || !uri.trim()) {
+  const uri = getSanitizedMongoUri();
+  if (!uri) {
     return null;
   }
 
@@ -43,7 +57,7 @@ export async function connectToDatabase(): Promise<typeof mongoose | null> {
     };
 
     cached!.promise = mongoose
-      .connect(uri.trim(), opts)
+      .connect(uri, opts)
       .then((m) => {
         cached!.conn = m;
         return m;

@@ -1,5 +1,6 @@
 import React, { Suspense } from "react";
 import type { Metadata } from "next";
+import { connection } from "next/server";
 import { getBookings } from "@/lib/server/bookings";
 import { BookingsDirectory } from "@/components/bookings/BookingsDirectory";
 import Loading from "@/app/loading";
@@ -10,6 +11,7 @@ export const metadata: Metadata = {
 };
 
 async function BookingsData() {
+  await connection();
   const bookings = await getBookings();
   return <BookingsDirectory initialBookings={bookings} />;
 }
