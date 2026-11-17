@@ -3,7 +3,12 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { bookingFormSchema } from "@/lib/validations/booking";
-import { createBooking, updateBooking, deleteBooking, updateBookingStatus } from "@/lib/server/bookings";
+import {
+  createBooking,
+  updateBooking,
+  deleteBooking,
+  updateBookingStatus,
+} from "@/lib/server/bookings";
 import { Service, BookingStatus } from "@/types/booking";
 
 export interface ActionState {
@@ -119,4 +124,30 @@ export async function updateBookingAction(
   revalidatePath(`/bookings/${id}`);
 
   redirect(`/bookings/${id}?success=updated`);
+}
+
+/**
+ * Quick Action: update status (e.g. Confirm or Cancel).
+ */
+export async function quickUpdateStatusAction(
+  id: string,
+  status: BookingStatus
+): Promise<{ success: boolean; error?: string }> {
+  const res = await updateBookingStatus(id, status);
+  if (res.success) {
+    revalidatePath("/");
+    revalidatePath("/bookings");
+    revalidatePath(`/bookings/${id}`);
+  }
+  return res;
+}
+
+/**
+ * Delete a booking permanently and redirect to /bookings.
+ */
+export async function deleteBookingAction(id: string): Promise<void> {
+  await deleteBooking(id);
+  revalidatePath("/");
+  revalidatePath("/bookings");
+  redirect("/bookings?success=deleted");
 }

@@ -1,20 +1,9 @@
 [
   {
-    "id": "98c56f84-8ff2-4bf5-bdeb-1d85ac50b1ac",
-    "customerName": "Atmiya",
-    "email": "malviyaatmiya0@gmail.com",
-    "service": "Personal Training",
-    "date": "2026-11-17",
-    "time": "09:00",
-    "status": "pending",
-    "notes": "i want personal training for weight gain",
-    "createdAt": "2026-11-17T10:34:02.964Z"
-  },
-  {
     "id": "550e8400-e29b-41d4-a716-446655440001",
-    "customerName": "Sarah Jenkins",
+    "customerName": "Sarah",
     "email": "sarah.jenkins@example.com",
-    "service": "Personal Training",
+    "service": "HIIT",
     "date": "2026-11-17",
     "time": "08:00",
     "status": "confirmed",
