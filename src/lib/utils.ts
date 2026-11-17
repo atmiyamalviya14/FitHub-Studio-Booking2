@@ -23,3 +23,9 @@ export function formatDate(dateStr: string): string {
     year: "numeric",
   }).format(date);
 }
+
+export function isToday(dateStr: string): boolean {
+  if (!dateStr) return false;
+  const today = new Date().toISOString().split("T")[0];
+  return dateStr === today;
+}
