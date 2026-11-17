@@ -17,6 +17,13 @@ export async function GET() {
     try {
       const conn = await connectToDatabase();
       isConnected = Boolean(conn);
+      if (!conn) {
+        // Run direct connect to capture exact error
+        await mongoose.connect(sanitizedUri, {
+          dbName: "fithub_studio",
+          serverSelectionTimeoutMS: 5000,
+        });
+      }
     } catch (e: unknown) {
       mongoError = e instanceof Error ? e.message : String(e);
     }
