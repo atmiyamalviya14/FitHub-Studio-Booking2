@@ -7,8 +7,10 @@ import { Booking, CreateBookingInput, Service, BookingStatus } from "@/types/boo
 import { connectToDatabase, isMongoConfigured } from "./mongodb";
 import { BookingModel } from "./models/Booking.model";
 
-const DATA_DIR = path.join(process.cwd(), "data");
-const DATA_FILE = path.join(DATA_DIR, "bookings.json");
+const isServerless = Boolean(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME);
+const BUNDLED_DATA_FILE = path.join(process.cwd(), "data", "bookings.json");
+const RUNTIME_DATA_DIR = isServerless ? "/tmp" : path.join(process.cwd(), "data");
+const RUNTIME_DATA_FILE = isServerless ? path.join("/tmp", "bookings.json") : BUNDLED_DATA_FILE;
 
 // Default seed data
 export const SEED_BOOKINGS: Booking[] = [
@@ -142,15 +144,21 @@ export async function getStorageInfo(): Promise<{ type: "MongoDB" | "JSON File S
  */
 async function ensureJsonFile(): Promise<void> {
   try {
-    await fs.mkdir(DATA_DIR, { recursive: true });
+    await fs.mkdir(RUNTIME_DATA_DIR, { recursive: true });
     try {
-      await fs.access(DATA_FILE);
+      await fs.access(RUNTIME_DATA_FILE);
     } catch {
-      await fs.writeFile(DATA_FILE, JSON.stringify(SEED_BOOKINGS, null, 2), "utf-8");
+      let initialData = SEED_BOOKINGS;
+      try {
+        const bundled = await fs.readFile(BUNDLED_DATA_FILE, "utf-8");
+        initialData = JSON.parse(bundled);
+      } catch {
+        // Fallback to in-memory seeds
+      }
+      await fs.writeFile(RUNTIME_DATA_FILE, JSON.stringify(initialData, null, 2), "utf-8");
     }
   } catch (error) {
     console.error("Error ensuring bookings file:", error);
-    throw error;
   }
 }
 
@@ -160,7 +168,7 @@ async function ensureJsonFile(): Promise<void> {
 async function readJsonBookings(): Promise<Booking[]> {
   await ensureJsonFile();
   try {
-    const raw = await fs.readFile(DATA_FILE, "utf-8");
+    const raw = await fs.readFile(RUNTIME_DATA_FILE, "utf-8");
     return JSON.parse(raw) as Booking[];
   } catch (error) {
     console.error("Failed to read bookings from JSON:", error);
@@ -173,7 +181,7 @@ async function readJsonBookings(): Promise<Booking[]> {
  */
 async function writeJsonBookings(bookings: Booking[]): Promise<void> {
   await ensureJsonFile();
-  await fs.writeFile(DATA_FILE, JSON.stringify(bookings, null, 2), "utf-8");
+  await fs.writeFile(RUNTIME_DATA_FILE, JSON.stringify(bookings, null, 2), "utf-8");
 }
 
 /**
