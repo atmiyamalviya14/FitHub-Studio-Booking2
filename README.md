@@ -1,36 +1,77 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# FitHub Studio — Front-Desk Booking Dashboard
 
-## Getting Started
+An internal session management web dashboard built for **FitHub Studio**, a boutique fitness studio delivering 1-on-1 personal training and group sessions.
 
-First, run the development server:
+Replacing spreadsheet chaos with a fast, conflict-guarded scheduling system for front-desk staff.
 
+---
+
+## ⚡ Quick Start (Run in under 2 minutes)
+
+### Prerequisites
+- Node.js 18.17+ or 20+ installed
+- npm (or pnpm / yarn / bun)
+
+### 1. Install Dependencies
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 2. Start Development Server
+```bash
+npm run dev
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 3. Build for Production
+```bash
+npm run build
+npm start
+```
 
-## Learn More
+---
 
-To learn more about Next.js, take a look at the following resources:
+## 🛠 Tech Stack
+- **Framework:** Next.js (App Router)
+- **Language:** TypeScript
+- **Styling:** Tailwind CSS
+- **Validation:** Zod
+- **Icons:** Lucide React
+- **Utility:** clsx, tailwind-merge
+- **Data Persistence:** Client-side LocalStorage engine with zero backend dependency (no database or auth needed for v1)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+---
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 📁 Project Architecture
 
-## Deploy on Vercel
+```text
+src/
+├── app/
+│   ├── globals.css          # Tailwind CSS v4 setup & custom tokens
+│   ├── layout.tsx           # Studio root layout & metadata
+│   └── page.tsx             # Main dashboard entrypoint
+├── components/
+│   ├── dashboard/           # Studio dashboard domain components
+│   ├── layout/              # Shared layout components (Header, Nav)
+│   └── ui/                  # Reusable UI primitives (Button, Card, Badge)
+├── hooks/
+│   └── useBookings.ts       # Booking lifecycle, conflict guard & local state
+├── lib/
+│   ├── constants/
+│   │   ├── mock-data.ts     # Initial seed bookings
+│   │   └── trainers.ts      # FitHub trainer roster
+│   ├── validations/
+│   │   └── booking.schema.ts# Zod schemas for booking add/edit
+│   ├── storage.ts           # LocalStorage synchronization manager
+│   └── utils.ts             # Date/time formatters and Tailwind merger
+└── types/
+    └── booking.ts           # Domain models and TypeScript contracts
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+---
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 💡 Key Design Highlights
+- **Conflict Prevention Engine**: Prevents double-booking trainers in overlapping time windows.
+- **Zero Database Hassle**: Fully functional out of the box with realistic seed data and live client persistence.
+- **Type Safety**: Strictly typed models with Zod validation.
