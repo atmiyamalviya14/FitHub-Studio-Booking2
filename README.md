@@ -6,6 +6,12 @@ Replaces spreadsheet chaos with a high-speed, conflict-guarded internal scheduli
 
 ---
 
+## 🌐 Live Demo & Repository
+* **Live Deployment (Vercel):** [https://fit-hub-studio-booking2.vercel.app](https://fit-hub-studio-booking2.vercel.app) *(or your Vercel deployment URL)*
+* **GitHub Repository:** [https://github.com/atmiyamalviya14/FitHub-Studio-Booking2.git](https://github.com/atmiyamalviya14/FitHub-Studio-Booking2.git)
+
+---
+
 ## ⚡ Quick Start (Run in under 2 minutes)
 
 ### Prerequisites
@@ -38,14 +44,15 @@ npm start
 ---
 
 ## 🛠 Tech Stack
-* **Framework:** Next.js 16 (App Router with Partial Prerendering)
+* **Framework:** Next.js 16 (App Router with Partial Prerendering & Server Actions)
+* **Library:** React 19 (`useOptimistic`, `useActionState`, `useTransition`, `<Suspense>`)
 * **Language:** TypeScript (Strict mode, **zero use of `any`**)
-* **Styling:** Tailwind CSS v4
+* **Styling & Theme:** Tailwind CSS v4 with system-aware Dark Mode support
 * **Validation:** Zod (Client-side feedback & Server Action enforcement)
 * **Icons:** Lucide React
 * **Persistence:** Dual-engine data layer:
-  * **Default (Zero Setup):** Server-side JSON storage in `data/bookings.json` (seeded with 10 sample bookings).
-  * **Optional MongoDB:** If `MONGODB_URI` is provided in `.env.local`, the system automatically connects to MongoDB via Mongoose.
+  * **Default (Zero Setup):** Server-side JSON storage in `data/bookings.json` (seeded with 10 sample bookings) with automatic `/tmp` serverless adaptation on Vercel.
+  * **Optional MongoDB:** If `MONGODB_URI` is provided in `.env.local` or Vercel Environment Variables, the system automatically connects to MongoDB via Mongoose.
 
 ---
 
@@ -163,6 +170,24 @@ D:\Atrosot\
 * Accessible delete confirmation modal: *"Are you sure you want to delete the booking for [Customer Name]? This action cannot be undone."*
 * Executes `deleteBookingAction` via Server Action, purges the record, and redirects to `/bookings` with confirmation.
 
+### 6. 🌟 All 4 Bonus Features Completed!
+* **📅 Interactive Weekly Calendar / Timetable View (`/bookings?view=calendar`)**:
+  * 7-day studio timetable with Previous Week, Next Week, and instant "Today" navigation.
+  * Desktop 7-column calendar grid highlighting today's date in emerald.
+  * Mobile-optimized horizontal day picker (375px responsive) with session count badges.
+  * Direct links on session cards to open details; "+ Add" buttons on empty days.
+* **🔗 Shareable Filtered URLs (Search Params)**:
+  * Full two-way synchronization between search, service dropdown, status dropdown, view mode, and browser address bar (`?service=Yoga&status=confirmed`).
+  * One-click **"Share Filtered View"** button copies the exact filtered URL to the clipboard with visual confirmation.
+  * Dashboard KPI cards deep-link directly into filtered views (e.g. clicking "Pending Confirmation" opens `/bookings?status=pending`).
+* **⚡ Optimistic UI Updates (`useOptimistic`)**:
+  * Utilizes React 19's `useOptimistic` hook on the booking details page.
+  * Status badges and buttons flip **instantly in 0ms** upon clicking "Confirm" or "Cancel", with background syncing indicators.
+  * Automatically rolls back state if the server mutation encounters an error.
+* **🌓 Dark Mode Theme Toggle**:
+  * Persistent dark/light toggle in the navigation bar using `localStorage` and `prefers-color-scheme`.
+  * Customized Tailwind CSS v4 styling across all tables, cards, badges, and modals.
+
 ---
 
 ## 💡 Key Architectural Decisions
@@ -224,10 +249,33 @@ To migrate from the local JSON file to a production database (e.g. PostgreSQL wi
 ---
 
 ## 🚀 Future Roadmap (With More Time)
-* **Weekly Calendar / Timetable View**: Interactive drag-and-drop grid view for visual front-desk scheduling.
-* **Email Confirmations**: Automated client confirmation and cancellation emails via Resend or SendGrid.
-* **Dark Mode**: High-contrast theme toggle for early morning or late night front-desk shifts.
-* **Capacity Tracking for Group Classes**: Track remaining slots (e.g. 10/12 spots booked for Yoga).
+
+If expanded further for a full-scale multi-location commercial gym, here are the high-value features planned next:
+
+1. **Automated Client Notifications (Email & SMS)**:
+   * Instant booking confirmation emails with downloadable `.ics` calendar invites via Resend.
+   * Automated SMS reminders sent 24 hours and 2 hours prior to class via Twilio to reduce no-show rates.
+
+2. **Trainer & Studio Room Scheduling**:
+   * Assign specific trainers (e.g. Coach Alex, Sarah T.) to individual sessions.
+   * Prevent room conflicts across multi-room studios (e.g. Yoga Studio A vs Reformer Studio B).
+
+3. **Group Class Capacity & Automated Waitlist**:
+   * Set maximum participant limits per group session (e.g. max 12 clients for HIIT).
+   * Automatic queue-based waitlisting: if a confirmed attendee cancels, the first person on the waitlist is automatically promoted and notified.
+
+4. **Client Self-Service Portal & Payment Processing**:
+   * Client-facing portal allowing members to log in, view their upcoming workout schedule, and cancel within studio policy windows (e.g. up to 6 hours before class).
+   * Stripe integration for upfront class pack purchases and single-session passes.
+
+5. **Recurring Class Series**:
+   * Front-desk staff can schedule recurring client reservations (e.g. "Every Tuesday & Thursday at 09:00 AM for 6 weeks") in a single action.
+
+6. **Role-Based Access Control (RBAC)**:
+   * Multi-role authorization (Front-Desk Staff, Trainers, Studio Owner / Manager) via NextAuth / Auth0, restricting financial summaries and delete actions to managers.
+
+7. **Studio Analytics & Attendance Insights**:
+   * Data dashboard highlighting peak studio hours, most popular service types, trainer utilization rates, and client attendance trends.
 
 ---
 
