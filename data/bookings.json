@@ -1,16 +1,5 @@
 [
   {
-    "id": "550e8400-e29b-41d4-a716-446655440001",
-    "customerName": "Sarah",
-    "email": "sarah.jenkins@example.com",
-    "service": "HIIT",
-    "date": "2026-11-17",
-    "time": "08:00",
-    "status": "confirmed",
-    "notes": "Focus on shoulder mobility and progressive barbell bench press.",
-    "createdAt": "2026-11-15T09:30:00.000Z"
-  },
-  {
     "id": "550e8400-e29b-41d4-a716-446655440002",
     "customerName": "Michael Chang",
     "email": "m.chang@example.com",
@@ -50,7 +39,7 @@
     "service": "Personal Training",
     "date": "2026-11-18",
     "time": "10:00",
-    "status": "pending",
+    "status": "cancelled",
     "notes": "New client fitness assessment and baseline measurements.",
     "createdAt": "2026-11-16T18:00:00.000Z"
   },
@@ -61,7 +50,7 @@
     "service": "HIIT",
     "date": "2026-11-18",
     "time": "18:00",
-    "status": "confirmed",
+    "status": "cancelled",
     "notes": "Prefers kettlebell circuit exercises.",
     "createdAt": "2026-11-16T19:10:00.000Z"
   },
@@ -83,7 +72,7 @@
     "service": "Pilates",
     "date": "2026-11-19",
     "time": "14:00",
-    "status": "pending",
+    "status": "cancelled",
     "notes": "Core stability focus, lower back rehab.",
     "createdAt": "2026-11-17T08:15:00.000Z"
   },

@@ -11,9 +11,9 @@ import {
   Menu,
   X,
   Clock,
-  Sparkles,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { ThemeToggle } from "./ThemeToggle";
 
 interface NavItem {
   label: string;
@@ -32,7 +32,7 @@ export function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
-    <header className="sticky top-0 z-40 w-full bg-white/95 backdrop-blur-md border-b border-slate-200">
+    <header className="sticky top-0 z-40 w-full bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 transition-colors">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo & Studio Brand */}
@@ -46,14 +46,14 @@ export function Navbar() {
               </div>
               <div className="flex flex-col">
                 <div className="flex items-center gap-1.5">
-                  <span className="font-bold text-base sm:text-lg text-slate-900 tracking-tight">
+                  <span className="font-bold text-base sm:text-lg text-slate-900 dark:text-white tracking-tight">
                     FitHub<span className="text-emerald-600">.</span>
                   </span>
-                  <span className="text-[10px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200">
+                  <span className="text-[10px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded-md bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
                     Studio
                   </span>
                 </div>
-                <span className="text-[11px] text-slate-500 hidden sm:inline-block leading-tight">
+                <span className="text-[11px] text-slate-500 dark:text-slate-400 hidden sm:inline-block leading-tight">
                   Front-Desk Dispatch
                 </span>
               </div>
@@ -75,14 +75,14 @@ export function Navbar() {
                     className={cn(
                       "flex items-center gap-2 px-3.5 py-2 rounded-lg text-sm font-medium transition-colors",
                       isActive
-                        ? "bg-slate-100 text-slate-900 font-semibold"
-                        : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
+                        ? "bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white font-semibold"
+                        : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800/60"
                     )}
                   >
                     <Icon
                       className={cn(
                         "h-4 w-4",
-                        isActive ? "text-emerald-600" : "text-slate-400"
+                        isActive ? "text-emerald-600 dark:text-emerald-400" : "text-slate-400 dark:text-slate-500"
                       )}
                     />
                     <span>{item.label}</span>
@@ -95,10 +95,13 @@ export function Navbar() {
           {/* Right Header Status & CTA */}
           <div className="hidden sm:flex items-center gap-3">
             {/* Studio Operating Hours Badge */}
-            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-50 border border-slate-200 text-[11px] text-slate-600 font-medium">
-              <Clock className="h-3 w-3 text-emerald-600" />
+            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-[11px] text-slate-600 dark:text-slate-300 font-medium">
+              <Clock className="h-3 w-3 text-emerald-600 dark:text-emerald-400" />
               <span>07:00 – 21:00</span>
             </div>
+
+            {/* Dark Mode Toggle */}
+            <ThemeToggle />
 
             {/* Quick New Booking Button */}
             <Link
@@ -110,8 +113,10 @@ export function Navbar() {
             </Link>
           </div>
 
-          {/* Mobile Hamburger Button */}
+          {/* Mobile Actions */}
           <div className="flex items-center gap-2 md:hidden">
+            <ThemeToggle />
+
             <Link
               href="/bookings/new"
               className="p-2 text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg"
@@ -123,7 +128,7 @@ export function Navbar() {
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               type="button"
-              className="p-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              className="p-2 rounded-lg text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500"
               aria-label="Toggle navigation menu"
             >
               {mobileMenuOpen ? (
@@ -136,9 +141,9 @@ export function Navbar() {
         </div>
       </div>
 
-      {/* Mobile Drawer Menu (Usable on 375px screens) */}
+      {/* Mobile Drawer Menu */}
       {mobileMenuOpen && (
-        <div className="md:hidden border-t border-slate-200 bg-white px-4 pt-3 pb-5 space-y-1 shadow-lg animate-slide-down">
+        <div className="md:hidden border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-4 pt-3 pb-5 space-y-1 shadow-lg animate-slide-down">
           {NAV_ITEMS.map((item) => {
             const Icon = item.icon;
             const isActive =
@@ -154,14 +159,14 @@ export function Navbar() {
                 className={cn(
                   "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
                   isActive
-                    ? "bg-emerald-50 text-emerald-700 font-semibold"
-                    : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                    ? "bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 font-semibold"
+                    : "text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white"
                 )}
               >
                 <Icon
                   className={cn(
                     "h-4 w-4",
-                    isActive ? "text-emerald-600" : "text-slate-400"
+                    isActive ? "text-emerald-600 dark:text-emerald-400" : "text-slate-400 dark:text-slate-500"
                   )}
                 />
                 <span>{item.label}</span>
@@ -169,12 +174,12 @@ export function Navbar() {
             );
           })}
 
-          <div className="pt-3 mt-2 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500 px-3">
+          <div className="pt-3 mt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 px-3">
             <span className="flex items-center gap-1.5">
-              <Clock className="h-3.5 w-3.5 text-emerald-600" />
+              <Clock className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
               Hours: 07:00 – 21:00
             </span>
-            <span className="text-emerald-600 font-medium">Front-Desk Active</span>
+            <span className="text-emerald-600 dark:text-emerald-400 font-medium">Front-Desk Active</span>
           </div>
         </div>
       )}

@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Navbar } from "@/components/layout/Navbar";
+import { ThemeProvider } from "@/components/providers/ThemeProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -27,21 +28,24 @@ export default function RootLayout({
   return (
     <html
       lang="en"
+      suppressHydrationWarning
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-slate-50 text-slate-900 font-sans">
-        <Suspense fallback={<div className="h-16 bg-white border-b border-slate-200" />}>
-          <Navbar />
-        </Suspense>
-        <div className="flex-1 flex flex-col">{children}</div>
-        <footer className="border-t border-slate-200 bg-white py-4 text-center text-xs text-slate-500">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-2">
-            <p>© 2026 FitHub Studio — Internal Front-Desk Dashboard</p>
-            <p className="text-[11px] text-slate-400">
-              Hours: 07:00 – 21:00 • Personal Training, Yoga, HIIT & Pilates
-            </p>
-          </div>
-        </footer>
+      <body className="min-h-full flex flex-col bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans transition-colors">
+        <ThemeProvider>
+          <Suspense fallback={<div className="h-16 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800" />}>
+            <Navbar />
+          </Suspense>
+          <div className="flex-1 flex flex-col">{children}</div>
+          <footer className="border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 py-4 text-center text-xs text-slate-500 dark:text-slate-400 transition-colors">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-2">
+              <p>© 2026 FitHub Studio — Internal Front-Desk Dashboard</p>
+              <p className="text-[11px] text-slate-400 dark:text-slate-500">
+                Hours: 07:00 – 21:00 • Personal Training, Yoga, HIIT & Pilates
+              </p>
+            </div>
+          </footer>
+        </ThemeProvider>
       </body>
     </html>
   );
