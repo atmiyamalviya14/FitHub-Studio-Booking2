@@ -61,6 +61,7 @@ const BookingSchema = new Schema<IBookingDocument>(
   {
     timestamps: false,
     versionKey: false,
+    collection: "bookings",
   }
 );
 

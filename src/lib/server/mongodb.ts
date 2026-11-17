@@ -1,10 +1,8 @@
 import "server-only";
 import mongoose from "mongoose";
 
-const MONGODB_URI = process.env.MONGODB_URI;
-
 /**
- * Global cache to prevent multiple connections during Next.js hot reload in development.
+ * Global cache to prevent multiple connections during Next.js hot reload and serverless invocations.
  */
 declare global {
   // eslint-disable-next-line no-var
@@ -21,42 +19,51 @@ if (!cached) {
 }
 
 export function isMongoConfigured(): boolean {
-  return Boolean(MONGODB_URI && MONGODB_URI.trim().length > 0);
+  const uri = process.env.MONGODB_URI;
+  return Boolean(uri && uri.trim().length > 0);
 }
 
 export async function connectToDatabase(): Promise<typeof mongoose | null> {
-  if (!isMongoConfigured()) {
+  const uri = process.env.MONGODB_URI;
+  if (!uri || !uri.trim()) {
     return null;
   }
 
-  if (cached!.conn) {
-    return cached!.conn;
+  // 1. Return immediately if existing connection is active and ready
+  if (mongoose.connection.readyState === 1) {
+    return mongoose;
   }
 
-  if (!cached!.promise) {
-    const opts = {
+  // 2. Initialize connection promise if not present or disconnected
+  if (!cached?.promise || mongoose.connection.readyState === 0) {
+    const opts: mongoose.ConnectOptions = {
+      dbName: "fithub_studio",
+      serverSelectionTimeoutMS: 8000,
       bufferCommands: false,
     };
 
     cached!.promise = mongoose
-      .connect(MONGODB_URI as string, opts)
+      .connect(uri.trim(), opts)
       .then((m) => {
+        cached!.conn = m;
         return m;
       })
       .catch((err) => {
         console.error("MongoDB connection error:", err);
         cached!.promise = null;
-        return null as unknown as typeof mongoose;
+        cached!.conn = null;
+        throw err;
       });
   }
 
+  // 3. Await connection resolution
   try {
     cached!.conn = await cached!.promise;
+    return cached!.conn;
   } catch (e) {
     cached!.promise = null;
+    cached!.conn = null;
     console.error("Failed to establish MongoDB connection:", e);
     return null;
   }
-
-  return cached!.conn;
 }
